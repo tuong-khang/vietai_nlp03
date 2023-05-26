@@ -249,7 +249,7 @@ def load_pretrained_model(local_rank):
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
     #model = None ### YOUR CODE HERE ###
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
