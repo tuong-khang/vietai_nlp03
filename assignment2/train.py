@@ -151,7 +151,7 @@ class Trainer:
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors="pt".
         
         #data_trainloader = None ### YOUR CODE HERE ###
-        data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,sampler=SequentialSampler, collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, return_tensor = 'pt'))
+        data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,sampler=SequentialSampler, collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, return_tensors = 'pt'))
         #data_trainloader = DataCollatorForSeq2Seq( DataLoader(train_dataset, batch_size) , return_tensors = 'pt')
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset', 
@@ -159,7 +159,7 @@ class Trainer:
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors type.
         
         #data_testloader = None ### YOUR CODE HERE ###
-        data_testloader = DataLoader(dataset=eval_dataset, batch_size=batch_size, sampler=SequentialSampler,collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, return_tensor = 'pt'))
+        data_testloader = DataLoader(dataset=eval_dataset, batch_size=batch_size, sampler=SequentialSampler,collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, return_tensors = 'pt'))
 
         return data_trainloader, data_testloader
     
