@@ -263,6 +263,7 @@ def load_pretrained_model(local_rank):
     # Create LoRA model
     #model = LoraModelForCasualLM(model, lora_config)
     model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
+    model.to('cuda:0')
     if _is_master_process():
         model.print_trainable_parameters()
 
