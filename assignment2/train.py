@@ -317,6 +317,7 @@ if __name__ == "__main__":
         local_rank = None ### YOUR CODE HERE ###
     else:
         os.environ['RANK'] = '0'
+        os.environ['CUDA_VISIBLE_DEVICES'] ='0'
         local_rank = 0
 
     # Prepare model
