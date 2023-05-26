@@ -294,7 +294,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type.
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
-    device_map = torch.device(f"cuda:{local_rank}")
+    
     model = AutoModelForCausalLM.from_pretrained(
         model_path).half()  # YOUR CODE HERE ###
 
@@ -307,7 +307,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
                              bias='none', task_type='CASUAL_LM')  # YOUR CODE HERE ###
 
     # Create LoRA model
-    model = LoraModelForCasualLM(model, lora_config).to(device_map)
+    model = LoraModelForCasualLM(model, lora_config)
     # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     #if _is_master_process():
     #    model.print_trainable_parameters()
@@ -341,6 +341,7 @@ if __name__ == "__main__":
     seed = 0
     log_freq = 1
     eval_freq = 150
+    local_rank = 0
 
     # TODO: Choose strategy
     distributed_strategy = "no"  # YOUR CODE HERE ###
@@ -361,6 +362,7 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
     mixed_precision_dtype = None
     # prepare trainer
+    
     trainer = Trainer(
         model=model,
         num_epochs=num_epochs,
