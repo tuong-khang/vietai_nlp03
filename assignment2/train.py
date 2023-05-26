@@ -178,13 +178,12 @@ class Trainer:
                                           sampler=DistributedSampler(
                                               train_dataset),
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            model=self.model, padding='longest',
+                                                                            padding='longest',
                                                                             return_tensors='pt'))
         else:
             data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
                                           sampler=RandomSampler(train_dataset),
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            model=self.model,
                                                                             padding='longest',
                                                                             return_tensors='pt'))
 
@@ -195,7 +194,6 @@ class Trainer:
         data_testloader = DataLoader(dataset=eval_dataset, batch_size=self.batch_size,
                                      sampler=SequentialSampler(eval_dataset),
                                      collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                       model=self.model,
                                                                        padding='longest',
                                                                        return_tensors='pt'))  # YOUR CODE HERE ###
 
