@@ -259,7 +259,7 @@ def load_pretrained_model(local_rank):
     #model = None ### YOUR CODE HERE ###
     model = AutoModelForCausalLM.from_pretrained(model_path)
     model = model.half()
-    device_map = {"": torch.device(f"cuda:{local_rank}")}
+    device_map = torch.device(f"cuda:{local_rank}")
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
