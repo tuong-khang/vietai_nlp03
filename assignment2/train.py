@@ -305,10 +305,10 @@ def load_pretrained_model(local_rank, model_path: str = ""):
                              bias='none', task_type='CASUAL_LM')  # YOUR CODE HERE ###
 
     # Create LoRA model
-    model = LoraModelForCasualLM(model, lora_config)
-    # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
-    #if _is_master_process():
-    #    model.print_trainable_parameters()
+    #model = LoraModelForCasualLM(model, lora_config)
+    model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
+    if _is_master_process():
+        model.print_trainable_parameters()
 
     return model
 
@@ -351,7 +351,7 @@ if __name__ == "__main__":
         # Initialize the process group ### YOUR CODE HERE ###
         local_rank = None  # YOUR CODE HERE ###
     else:
-        os.environ['RANK'] = 0
+        os.environ['RANK'] = '0'
         local_rank = 0
 
     # Prepare model
