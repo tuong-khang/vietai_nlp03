@@ -351,7 +351,7 @@ if __name__ == "__main__":
         # Initialize the process group ### YOUR CODE HERE ###
         local_rank = None  # YOUR CODE HERE ###
     else:
-        os.environ['RANK'] = '0'
+        os.environ['RANK'] = 0
         local_rank = 0
 
     # Prepare model
