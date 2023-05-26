@@ -310,7 +310,8 @@ if __name__ == "__main__":
         local_rank = 0
 
     # Prepare model
-    device = torch.device('cuda:0')
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = load_pretrained_model(local_rank, device)
     model.to(device)
     # Get tokenizer
