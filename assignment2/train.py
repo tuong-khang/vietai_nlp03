@@ -261,7 +261,7 @@ def load_pretrained_model(local_rank, device):
     lora_config = LoraConfig(r=8, lora_alpha = 16, lora_dropout = 0.05, bias = 'none', task_type = 'CASUAL_LM')
 
     # Create LoRA model
-    model = LoraModelForCasualLM(model, lora_config).to(device)
+    model = LoraModelForCasualLM(model, lora_config)
     #model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
@@ -312,6 +312,7 @@ if __name__ == "__main__":
     # Prepare model
     device = torch.device('cuda:0')
     model = load_pretrained_model(local_rank, device)
+    model.to(device)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path = model_path)
 
