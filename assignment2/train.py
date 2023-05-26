@@ -174,17 +174,17 @@ class Trainer:
         # use 'DistributedSampler' for 'sampler' argument, else use 'None'.
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors="pt".
         if self.is_ddp_training:
-            data_trainloader = DataLoader(dataset=train_dataset, batch_size=batch_size,
+            data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
                                           sampler=DistributedSampler(
                                               train_dataset),
-                                          collate_fn=DataCollatorForSeq2Seq(tokenizer=tokenizer,
-                                                                            model=model, padding='longest',
+                                          collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
+                                                                            model=self.model, padding='longest',
                                                                             return_tensors='pt'))
         else:
-            data_trainloader = DataLoader(dataset=train_dataset, batch_size=batch_size,
+            data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
                                           sampler=RandomSampler(train_dataset),
-                                          collate_fn=DataCollatorForSeq2Seq(tokenizer=tokenizer,
-                                                                            model=model,
+                                          collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
+                                                                            model=self.model,
                                                                             padding='longest',
                                                                             return_tensors='pt'))
 
@@ -192,10 +192,10 @@ class Trainer:
         # the appropriate 'batch_size', and 'SequentialSampler' for 'sampler'.
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors type.
 
-        data_testloader = DataLoader(dataset=eval_dataset, batch_size=batch_size,
+        data_testloader = DataLoader(dataset=eval_dataset, batch_size=self.batch_size,
                                      sampler=SequentialSampler(eval_dataset),
-                                     collate_fn=DataCollatorForSeq2Seq(tokenizer=tokenizer,
-                                                                       model=model,
+                                     collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
+                                                                       model=self.model,
                                                                        padding='longest',
                                                                        return_tensors='pt'))  # YOUR CODE HERE ###
 
