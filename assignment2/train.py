@@ -254,6 +254,7 @@ def load_pretrained_model(local_rank, device):
 
     #model = None ### YOUR CODE HERE ###
     model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = model.half()
 
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
