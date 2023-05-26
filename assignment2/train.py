@@ -17,7 +17,6 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 
 
-
 import warnings
 warnings.filterwarnings('ignore')
 torch.manual_seed(42)
@@ -33,6 +32,7 @@ class Trainer:
             num_epochs: int = 10, 
             max_length: int = 128, 
             batch_size: int = 8,
+            mixed_precision_dtype =  None,
             gradient_accumulation_steps: int = 16):
         """
         Initialize the Trainer class.
@@ -54,18 +54,28 @@ class Trainer:
         self.tokenizer = tokenizer
         self.is_ddp_training = is_ddp_training
         
-        self.model = model  
+        self.model = model.to(f"cuda:{self.gpu_id}")  
         self.gpu_id = gpu_id
         self.gradient_accumulation_steps = gradient_accumulation_steps
-
-        # move model to device
-        model.to(f"cuda:{self.gpu_id}")
-
-        # TODO: Setup mixed precision training context. If 'mixed_precision_dtype' is None, use 'nullcontext', 
-        # otherwise use 'torch.amp.autocast' with the specified dtype.
-        mixed_precision_dtype = None ### YOUR CODE HERE ###
-        self.ctx = nullcontext() ### YOUR CODE HERE ###
         
+        self.mixed_precision_dtype = mixed_precision_dtype
+        self.ctx  = None
+        self.gradscaler = None
+        
+        # set mixed precision context
+        self.set_mixed_precision_context(mixed_precision_dtype)
+        
+        
+    def set_mixed_precision_context(self, mixed_precision_dtype):
+        # TODO: Setup mixed precision training context
+        if mixed_precision_dtype is None:
+            # If 'mixed_precision_dtype' is None, use 'nullcontext', 
+            self.ctx = nullcontext()
+        else:
+            # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
+            self.ctx = None ### YOUR CODE HERE ###
+            self.gradscaler = None ### YOUR CODE HERE ###
+            
 
     def _set_ddp_training(self):
         # TODO: Initialize the DistributedDataParallel wrapper for the model. 
@@ -85,11 +95,20 @@ class Trainer:
             Loss value for the batch.
         """
         
+       
         with self.ctx:
             outputs = self.model(**batch) 
             loss = outputs.loss / self.gradient_accumulation_steps  # Normalize loss
-        loss.backward()
-        return loss.item()
+        loss_val = loss.item()
+        
+        # TODO: If 'mixed_precision_dtype' is torch.float16, you have to modify the backward using the gradscaler.
+        if self.mixed_precision_dtype==torch.float16:
+            ### YOUR CODE HERE ###
+            pass 
+        else:
+            loss.backward()
+
+        return loss_val
 
     def _run_epoch(self, train_dataloader, epoch):
         """
@@ -115,17 +134,23 @@ class Trainer:
         steps = 0
         self.optimizer.zero_grad()  # Reset gradients at the beginning of each epoch
         for step, batch in enumerate(train_progress_bar):
+            steps += 1
             batch = {key: value.to(self.gpu_id) for key, value in batch.items()}
             loss = self._run_batch(batch)
             epoch_loss += loss 
-
-            # Increment steps
-            steps += 1
-
             # Perform optimizer step and reset gradients after accumulating enough gradients
             if steps % self.gradient_accumulation_steps == 0:
-                self.optimizer.step()
+    
+                #If 'mixed_precision_dtype' is torch.float16, you have to modify the gradient update step using the gradscaler.
+                if self.mixed_precision_dtype==torch.float16:
+                    ### YOUR CODE HERE ###
+                    # TODO: optimizer step
+                    # TODO: update scaler factor 
+                    pass 
+                else:
+                    self.optimizer.step()
                 self.optimizer.zero_grad()
+                
                 torch.cuda.empty_cache()
         epoch_loss /= (len(train_dataloader) / self.gradient_accumulation_steps)
         return epoch_loss
@@ -149,27 +174,33 @@ class Trainer:
         # Depending on whether the training is distributed (is_ddp_training), 
         # use 'DistributedSampler' for 'sampler' argument, else use 'None'.
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors="pt".
-        
-        #data_trainloader = None ### YOUR CODE HERE ###
         if self.is_ddp_training:
             data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
                                         sampler=DistributedSampler(train_dataset),
-                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='longest' , return_tensors = 'pt'))
+                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer,
+                                                                          model = model, padding='longest',
+                                                                            return_tensors = 'pt'))
         else:
             data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
                                         sampler=RandomSampler(train_dataset),
-                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer,model = model,  padding='longest' , return_tensors = 'pt'))
-        #data_trainloader = DataCollatorForSeq2Seq( DataLoader(train_dataset, batch_size) , return_tensors = 'pt')
+                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer,
+                                                                          model = model,  
+                                                                          padding='longest', 
+                                                                          return_tensors = 'pt'))
+        
+
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset', 
         # the appropriate 'batch_size', and 'SequentialSampler' for 'sampler'.
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors type.
         
-        #data_testloader = None ### YOUR CODE HERE ###
         data_testloader = DataLoader(dataset=eval_dataset, batch_size=batch_size, 
                                      sampler=SequentialSampler(eval_dataset),
-                                     collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, model = model, padding='longest', return_tensors = 'pt'))
-
+                                     collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, 
+                                                                       model = model, 
+                                                                       padding='longest', 
+                                                                       return_tensors = 'pt'))### YOUR CODE HERE ###
+        
         return data_trainloader, data_testloader
     
     def _eval(self, eval_dataloader, epoch: int):
@@ -227,6 +258,7 @@ class Trainer:
 
 
 def load_tokenizer_from_pretrained_model(model_path):
+    
     config = AutoConfig.from_pretrained(model_path)
     architecture = config.architectures[0]
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -253,30 +285,27 @@ def _is_master_process():
     ddp_rank = int(os.environ['RANK'])
     return ddp_rank == 0
 
-def load_pretrained_model(local_rank):
+def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type. 
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
-    #model = None ### YOUR CODE HERE ###
-    model = AutoModelForCausalLM.from_pretrained(model_path)
-    model = model.half()
-    device_map = torch.device(f"cuda:{local_rank}")
 
+    device_map = torch.device(f"cuda:{local_rank}")
+    model = AutoModelForCausalLM.from_pretrained(model_path).half().to(device_map) ### YOUR CODE HERE ###
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
     # We will then use the config to initialize a LoraModelForCasualLM with the loaded model. 
     # Then, print the trainable parameters of the model.
 
-    #lora_config = None ### YOUR CODE HERE ###
-    lora_config = LoraConfig(r=8, lora_alpha = 16, lora_dropout = 0.05, bias = 'none', task_type = 'CASUAL_LM')
+    lora_config = LoraConfig(r=8, lora_alpha = 16, lora_dropout = 0.05,
+                              bias = 'none', task_type = 'CASUAL_LM') ### YOUR CODE HERE ###
 
     # Create LoRA model
     model = LoraModelForCasualLM(model, lora_config)
-    
-    model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
+    # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
 
-    return model.to(device_map)
+    return model
 
 
 if __name__ == "__main__":
@@ -317,15 +346,13 @@ if __name__ == "__main__":
         local_rank = None ### YOUR CODE HERE ###
     else:
         os.environ['RANK'] = '0'
-        os.environ['CUDA_VISIBLE_DEVICES'] ='0'
         local_rank = 0
 
     # Prepare model
-
-    model = load_pretrained_model(local_rank)
+    model = load_pretrained_model(local_rank, model_path= model_path)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path = model_path)
-
+    mixed_precision_dtype = None
     # prepare trainer
     trainer = Trainer(
         model = model, 
@@ -333,6 +360,7 @@ if __name__ == "__main__":
         max_length = max_length,
         batch_size = batch_size,
         gpu_id=local_rank,
+        mixed_precision_dtype = mixed_precision_dtype 
         tokenizer=tokenizer,
         output_dir= OUTPUT_DIR,
         is_ddp_training = True if distributed_strategy == "ddp" else False,
