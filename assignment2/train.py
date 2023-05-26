@@ -273,11 +273,11 @@ def load_pretrained_model(local_rank):
     model = LoraModelForCasualLM(model, lora_config)
     
     model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
-    model.to(device_map)
+    model
     if _is_master_process():
         model.print_trainable_parameters()
 
-    return model
+    return model.to(device_map)
 
 
 if __name__ == "__main__":
