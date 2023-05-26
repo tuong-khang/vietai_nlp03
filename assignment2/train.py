@@ -266,7 +266,7 @@ def load_pretrained_model(local_rank):
     if _is_master_process():
         model.print_trainable_parameters()
 
-    return model.to(device)
+    return model
 
 
 if __name__ == "__main__":
