@@ -244,7 +244,7 @@ def _is_master_process():
     ddp_rank = int(os.environ['RANK'])
     return ddp_rank == 0
 
-def load_pretrained_model(local_rank):
+def load_pretrained_model(local_rank, device):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type. 
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
@@ -310,8 +310,8 @@ if __name__ == "__main__":
         local_rank = 0
 
     # Prepare model
-    device = torch.device('cuda')
-    model = load_pretrained_model(local_rank)
+    device = torch.device('cuda:0')
+    model = load_pretrained_model(local_rank, device)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path = model_path)
 
