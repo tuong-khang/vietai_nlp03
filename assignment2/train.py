@@ -151,9 +151,14 @@ class Trainer:
         # Use 'DataCollatorForSeq2Seq' for 'collate_fn', passing 'tokenizer', padding settings, and return_tensors="pt".
         
         #data_trainloader = None ### YOUR CODE HERE ###
-        data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
-                                      sampler=RandomSampler(train_dataset),
-                                      collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='longest' , return_tensors = 'pt'))
+        if self.is_ddp_training:
+            data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
+                                        sampler=DistributedSampler(train_dataset),
+                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='longest' , return_tensors = 'pt'))
+        else:
+            data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
+                                        sampler=RandomSampler(train_dataset),
+                                        collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='longest' , return_tensors = 'pt'))
         #data_trainloader = DataCollatorForSeq2Seq( DataLoader(train_dataset, batch_size) , return_tensors = 'pt')
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset', 
@@ -248,14 +253,13 @@ def _is_master_process():
     ddp_rank = int(os.environ['RANK'])
     return ddp_rank == 0
 
-def load_pretrained_model(local_rank, device):
+def load_pretrained_model(local_rank):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type. 
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
-
     #model = None ### YOUR CODE HERE ###
     model = AutoModelForCausalLM.from_pretrained(model_path)
     model = model.half()
-
+    device_map = {"": torch.device(f"cuda:{local_rank}")}
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
@@ -267,6 +271,7 @@ def load_pretrained_model(local_rank, device):
 
     # Create LoRA model
     model = LoraModelForCasualLM(model, lora_config)
+    model.to(device_map)
     #model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
@@ -315,12 +320,8 @@ if __name__ == "__main__":
         local_rank = 0
 
     # Prepare model
-    
-    device = f'cuda:{local_rank}'
 
-    model = load_pretrained_model(local_rank, device)
-    model.to(device)
-    print(model.dtype)
+    model = load_pretrained_model(local_rank)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path = model_path)
 
