@@ -153,7 +153,7 @@ class Trainer:
         #data_trainloader = None ### YOUR CODE HERE ###
         data_trainloader = DataLoader(dataset = train_dataset, batch_size=batch_size,
                                       sampler=RandomSampler(train_dataset),
-                                      collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding=max_length , return_tensors = 'pt'))
+                                      collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='max_length' , return_tensors = 'pt'))
         #data_trainloader = DataCollatorForSeq2Seq( DataLoader(train_dataset, batch_size) , return_tensors = 'pt')
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset', 
@@ -163,7 +163,7 @@ class Trainer:
         #data_testloader = None ### YOUR CODE HERE ###
         data_testloader = DataLoader(dataset=eval_dataset, batch_size=batch_size, 
                                      sampler=SequentialSampler(eval_dataset),
-                                     collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding=max_length, return_tensors = 'pt'))
+                                     collate_fn=DataCollatorForSeq2Seq(tokenizer = tokenizer, padding='max_length', return_tensors = 'pt'))
 
         return data_trainloader, data_testloader
     
