@@ -316,7 +316,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     if _is_master_process():
         model.print_trainable_parameters()
 
-    return model
+    return model.to(f"cuda:{local_rank}")
 
 
 if __name__ == "__main__":
