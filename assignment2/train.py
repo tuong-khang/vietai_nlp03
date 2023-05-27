@@ -7,14 +7,15 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq2Seq
 
 from contextlib import nullcontext
+from torch.cuda.amp import GradScaler, autocast
 
 from lora_model import LoraModelForCasualLM
 from utils.common import download_from_driver
 from prepare_data import create_datasets
 from torch.distributed import destroy_process_group
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import RandomSampler, SequentialSampler
 
 
 import warnings
@@ -72,14 +73,15 @@ class Trainer:
             self.ctx = nullcontext()
         else:
             # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
-            self.ctx = None  # YOUR CODE HERE ###
-            self.gradscaler = None  # YOUR CODE HERE ###
+            self.ctx = torch.amp.autocast(device_type='cuda', dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
+            self.gradscaler = GradScaler()  # YOUR CODE HERE ###
 
     def _set_ddp_training(self):
         # TODO: Initialize the DistributedDataParallel wrapper for the model.
         # You would need to pass the model and specify the device IDs
         # and output device for the data parallelism.
         self.model = None  # YOUR CODE HERE ###
+        self.model = DDP(model, device_ids=[self.gpu_id], output_device=self.gpu_id)
 
     def _run_batch(self, batch):
         """
@@ -100,6 +102,8 @@ class Trainer:
         # TODO: If 'mixed_precision_dtype' is torch.float16, you have to modify the backward using the gradscaler.
         if self.mixed_precision_dtype == torch.float16:
             ### YOUR CODE HERE ###
+            self.gradscaler.scale(loss).backward()
+            #self.gradscaler.update()
             pass
         else:
             loss.backward()
@@ -144,6 +148,8 @@ class Trainer:
                     ### YOUR CODE HERE ###
                     # TODO: optimizer step
                     # TODO: update scaler factor
+                    self.optimizer.step()
+                    self.gradscaler.update()
                     pass
                 else:
                     self.optimizer.step()
