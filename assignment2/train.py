@@ -31,7 +31,7 @@ class Trainer:
                  gpu_id: int,
                  is_ddp_training: bool = True,
                  output_dir: str = 'checkpoints/',
-                 num_epochs: int = 10,
+                 num_epochs: int = 5,
                  max_length: int = 128,
                  batch_size: int = 8,
                  mixed_precision_dtype=None,
@@ -217,7 +217,7 @@ class Trainer:
         for batch in eval_progress_bar:
             with self.ctx:
                 with torch.no_grad():
-                    outputs = self.model(**batch).to(f"cuda:{self.gpu_id}")
+                    outputs = model(**batch)
             avg_loss += outputs.loss.item()
         avg_loss = avg_loss/(len(eval_dataloader))
         return avg_loss
