@@ -217,7 +217,7 @@ class Trainer:
         for batch in eval_progress_bar:
             with self.ctx:
                 with torch.no_grad():
-                    outputs = self.model(**batch)
+                    outputs = self.model(**batch).to(f"cuda:{self.gpu_id}")
             avg_loss += outputs.loss.item()
         avg_loss = avg_loss/(len(eval_dataloader))
         return avg_loss
@@ -255,7 +255,7 @@ class Trainer:
 
             train_loss = self._run_epoch(train_dataloader, epoch)
 
-            ''' 
+             
             if _is_master_process():
                 eval_loss = self._eval(
                     eval_dataloader=eval_dataloader, epoch=epoch)
@@ -263,7 +263,7 @@ class Trainer:
                 print(
                     f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
                 self._save_checkpoint(epoch=epoch)
-            '''
+            
 
 
 def load_tokenizer_from_pretrained_model(model_path):
@@ -318,7 +318,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     if _is_master_process():
         model.print_trainable_parameters()
 
-    return model.to(f"cuda:{local_rank}")
+    return model
 
 
 if __name__ == "__main__":
