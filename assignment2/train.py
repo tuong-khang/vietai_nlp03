@@ -73,7 +73,8 @@ class Trainer:
             self.ctx = nullcontext()
         else:
             # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
-            self.ctx = torch.amp.autocast(device_type='cuda', dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
+            self.ctx = torch.amp.autocast(
+                device_type='cuda', dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
             self.gradscaler = GradScaler()  # YOUR CODE HERE ###
 
     def _set_ddp_training(self):
@@ -81,7 +82,8 @@ class Trainer:
         # You would need to pass the model and specify the device IDs
         # and output device for the data parallelism.
         self.model = None  # YOUR CODE HERE ###
-        self.model = DDP(self.model, device_ids=[self.gpu_id], output_device=self.gpu_id)
+        self.model = DDP(self.model, device_ids=[
+                         self.gpu_id], output_device=self.gpu_id)
 
     def _run_batch(self, batch):
         """
@@ -103,8 +105,8 @@ class Trainer:
         if self.mixed_precision_dtype == torch.float16:
             ### YOUR CODE HERE ###
             self.gradscaler.scale(loss).backward()
-            #self.gradscaler.update()
-            pass
+            # self.gradscaler.update()
+            # pass
         else:
             loss.backward()
 
@@ -150,7 +152,7 @@ class Trainer:
                     # TODO: update scaler factor
                     self.optimizer.step()
                     self.gradscaler.update()
-                    pass
+                    # pass
                 else:
                     self.optimizer.step()
                 self.optimizer.zero_grad()
@@ -188,7 +190,7 @@ class Trainer:
                                                                             return_tensors='pt'))
         else:
             data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
-                                          sampler=RandomSampler(train_dataset),
+                                          sampler=None,
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
                                                                             padding='longest',
                                                                             return_tensors='pt'))
@@ -215,7 +217,7 @@ class Trainer:
             eval_progress_bar = eval_dataloader
 
         for batch in eval_progress_bar:
-            
+
             with self.ctx:
                 with torch.no_grad():
                     outputs = self.model(**batch)
@@ -257,16 +259,14 @@ class Trainer:
 
             train_loss = self._run_epoch(train_dataloader, epoch)
 
-             
             if _is_master_process():
                 eval_loss = self._eval(
                     eval_dataloader=eval_dataloader, epoch=epoch)
 
                 print(
-                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
+                    # f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
                     f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
                 self._save_checkpoint(epoch=epoch)
-            
 
 
 def load_tokenizer_from_pretrained_model(model_path):
@@ -303,7 +303,6 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type.
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
-    
     model = AutoModelForCausalLM.from_pretrained(
         model_path).half()  # YOUR CODE HERE ###
 
@@ -317,7 +316,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
 
     # Create LoRA model
     model = LoraModelForCasualLM(model, lora_config)
-    #model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
+    # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
 
@@ -371,7 +370,7 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
     mixed_precision_dtype = None
     # prepare trainer
-    
+
     trainer = Trainer(
         model=model,
         num_epochs=num_epochs,
