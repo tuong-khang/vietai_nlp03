@@ -81,7 +81,7 @@ class Trainer:
         # You would need to pass the model and specify the device IDs
         # and output device for the data parallelism.
         self.model = None  # YOUR CODE HERE ###
-        self.model = DDP(model, device_ids=[self.gpu_id], output_device=self.gpu_id)
+        self.model = DDP(self.model, device_ids=[self.gpu_id], output_device=self.gpu_id)
 
     def _run_batch(self, batch):
         """
@@ -255,6 +255,7 @@ class Trainer:
 
             train_loss = self._run_epoch(train_dataloader, epoch)
 
+            ''' 
             if _is_master_process():
                 eval_loss = self._eval(
                     eval_dataloader=eval_dataloader, epoch=epoch)
@@ -262,6 +263,7 @@ class Trainer:
                 print(
                     f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
                 self._save_checkpoint(epoch=epoch)
+            '''
 
 
 def load_tokenizer_from_pretrained_model(model_path):
