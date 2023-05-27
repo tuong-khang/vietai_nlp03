@@ -216,9 +216,10 @@ class Trainer:
 
         for batch in eval_progress_bar:
             
-            with torch.no_grad():
-                with self.ctx:
+            with self.ctx:
+                with torch.no_grad():
                     outputs = model(**batch)
+
             avg_loss += outputs.loss.item()
         avg_loss = avg_loss/(len(eval_dataloader))
         return avg_loss
