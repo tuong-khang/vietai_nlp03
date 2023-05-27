@@ -218,7 +218,7 @@ class Trainer:
             
             with torch.no_grad():
                 with self.ctx:
-                    outputs = self.model(**batch)
+                    outputs = model(**batch)
             avg_loss += outputs.loss.item()
         avg_loss = avg_loss/(len(eval_dataloader))
         return avg_loss
