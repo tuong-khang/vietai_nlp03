@@ -207,7 +207,7 @@ class Trainer:
 
     def _eval(self, eval_dataloader, epoch: int):
         avg_loss = 0
-        model.eval()
+        self.model.eval()
         if _is_master_process():
             eval_progress_bar = tqdm(
                 eval_dataloader, desc=f"Epoch {epoch + 1} [Evaluation]", position=0, leave=False)
@@ -218,7 +218,7 @@ class Trainer:
             
             with self.ctx:
                 with torch.no_grad():
-                    outputs = model(**batch)
+                    outputs = self.model(**batch)
 
             avg_loss += outputs.loss.item()
         avg_loss = avg_loss/(len(eval_dataloader))
