@@ -259,11 +259,11 @@ class Trainer:
              
             if _is_master_process():
                 eval_loss = self._eval(
-                    eval_dataloader=train_dataloader, epoch=epoch)
+                    eval_dataloader=eval_dataloader, epoch=epoch)
 
                 print(
-                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
-                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
+                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
+                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
                 self._save_checkpoint(epoch=epoch)
             
 
@@ -315,8 +315,8 @@ def load_pretrained_model(local_rank, model_path: str = ""):
                              bias='none', task_type='CASUAL_LM')  # YOUR CODE HERE ###
 
     # Create LoRA model
-    #model = LoraModelForCasualLM(model, lora_config)
-    model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
+    model = LoraModelForCasualLM(model, lora_config)
+    #model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
 
