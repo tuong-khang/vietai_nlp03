@@ -74,14 +74,14 @@ class Trainer:
         else:
             # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
             self.ctx = torch.amp.autocast(
-                device_type='cuda', dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
+                device_type='cuda', dtype=torch.float16)  # YOUR CODE HERE ###
             self.gradscaler = GradScaler()  # YOUR CODE HERE ###
 
     def _set_ddp_training(self):
         # TODO: Initialize the DistributedDataParallel wrapper for the model.
         # You would need to pass the model and specify the device IDs
         # and output device for the data parallelism.
-        self.model = None  # YOUR CODE HERE ###
+        #self.model = None  # YOUR CODE HERE ###
         self.model = DDP(self.model, device_ids=[
                          self.gpu_id], output_device=self.gpu_id)
 
@@ -209,7 +209,6 @@ class Trainer:
 
     def _eval(self, eval_dataloader, epoch: int):
         avg_loss = 0
-        self.model.to(f"cuda:{self.gpu_id}")
         self.model.eval()
         if _is_master_process():
             eval_progress_bar = tqdm(
@@ -304,7 +303,9 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type.
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
-    model = AutoModelForCausalLM.from_pretrained(model_path).half()  # YOUR CODE HERE ###
+    model = AutoModelForCausalLM.from_pretrained( model_path,
+            torch_dtype=torch.float16,
+            device_map="auto")  # YOUR CODE HERE ###
     
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16,
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
@@ -315,11 +316,11 @@ def load_pretrained_model(local_rank, model_path: str = ""):
                              bias='none', task_type='CASUAL_LM')  # YOUR CODE HERE ###
 
     # Create LoRA model
-    model = LoraModelForCasualLM(model, lora_config)
+    model = LoraModelForCasualLM(model, lora_config,torch_dtype=torch.float16)
     # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
-    print(model.dtype)
+    #print(model.dtype)
     return model
 
 
