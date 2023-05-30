@@ -186,13 +186,13 @@ class Trainer:
                                           sampler=DistributedSampler(
                                               train_dataset),
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            padding='longest',
+                                                                            #padding='longest',
                                                                             return_tensors='pt'))
         else:
             data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
                                           sampler=None,
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            padding='longest',
+                                                                            #padding='longest',
                                                                             return_tensors='pt'))
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset',
@@ -202,7 +202,7 @@ class Trainer:
         data_testloader = DataLoader(dataset=eval_dataset, batch_size=self.batch_size,
                                      sampler=SequentialSampler(eval_dataset),
                                      collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                       padding='longest',
+                                                                       #padding='longest',
                                                                        return_tensors='pt'))  # YOUR CODE HERE ###
 
         return data_trainloader, data_testloader
@@ -337,7 +337,7 @@ if __name__ == "__main__":
 
     size_valid_set = 0.1
     max_length = 512
-    num_epochs = 10
+    num_epochs = 5
     batch_size = 4
     gradient_accumulation_steps = 16
 
