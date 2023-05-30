@@ -370,7 +370,7 @@ if __name__ == "__main__":
     model = load_pretrained_model(local_rank, model_path=model_path)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
-    mixed_precision_dtype = torch.float16
+    mixed_precision_dtype = None
     # prepare trainer
 
     trainer = Trainer(
