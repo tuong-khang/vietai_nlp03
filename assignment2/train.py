@@ -73,8 +73,9 @@ class Trainer:
             self.ctx = nullcontext()
         else:
             # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
-            self.ctx = None  # YOUR CODE HERE ###
-            self.gradscaler = None  # YOUR CODE HERE ###
+            self.ctx = torch.amp.autocast(
+                device_type='cuda', dtype=torch.float16)  # YOUR CODE HERE ###
+            self.gradscaler = GradScaler()  # YOUR CODE HERE ###
 
     def _set_ddp_training(self):
         # TODO: Initialize the DistributedDataParallel wrapper for the model.
@@ -101,7 +102,8 @@ class Trainer:
         # TODO: If 'mixed_precision_dtype' is torch.float16, you have to modify the backward using the gradscaler.
         if self.mixed_precision_dtype == torch.float16:
             ### YOUR CODE HERE ###
-            pass
+            self.gradscaler.scale(loss).backward()
+            #pass
         else:
             loss.backward()
 
@@ -144,7 +146,9 @@ class Trainer:
                 if self.mixed_precision_dtype == torch.float16:
                     ### YOUR CODE HERE ###
                     # TODO: optimizer step
+                    self.gradscaler.step(self.optimizer)
                     # TODO: update scaler factor
+                    self.gradscaler.update()
                     pass
                 else:
                     self.optimizer.step()
@@ -360,7 +364,8 @@ if __name__ == "__main__":
     model = load_pretrained_model(local_rank, model_path=model_path)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
-
+    mixed_precision_dtype = torch.float16
+    
     # prepare trainer
     trainer = Trainer(
         model=model,
@@ -368,7 +373,7 @@ if __name__ == "__main__":
         max_length=max_length,
         batch_size=batch_size,
         gpu_id=local_rank,
-        mixed_precision_dtype=None,
+        mixed_precision_dtype=mixed_precision_dtype,
         tokenizer=tokenizer,
         output_dir=OUTPUT_DIR,
         is_ddp_training=True if distributed_strategy == "ddp" else False,
