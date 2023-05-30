@@ -319,7 +319,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
-    print(model.type())
+    print(model.type)
     return model
 
 
