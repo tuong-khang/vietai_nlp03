@@ -295,8 +295,8 @@ def load_pretrained_model(local_rank, model_path: str = ""):
 
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.float16,
-        device_map="auto")  # YOUR CODE HERE ###
+        torch_dtype=torch.float16
+        )  # YOUR CODE HERE ###
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16,
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
