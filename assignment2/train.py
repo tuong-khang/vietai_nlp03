@@ -316,11 +316,11 @@ def load_pretrained_model(local_rank, model_path: str = ""):
                              bias='none', task_type='CASUAL_LM')  # YOUR CODE HERE ###
 
     # Create LoRA model
-    model = LoraModelForCasualLM(model, lora_config,torch_dtype=torch.float16)
+    model = LoraModelForCasualLM(model, lora_config)
     # model = get_peft_model(model, lora_config) # Uncomment this line to use PEFT library instead of your implementation in `lora_layer.py`.
     if _is_master_process():
         model.print_trainable_parameters()
-    #print(model.dtype)
+    print(model.dtype)
     return model
 
 
@@ -338,7 +338,7 @@ if __name__ == "__main__":
 
     size_valid_set = 0.1
     max_length = 512
-    num_epochs = 3
+    num_epochs = 5
     batch_size = 4
     gradient_accumulation_steps = 16
 
