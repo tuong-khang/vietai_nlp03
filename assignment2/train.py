@@ -335,8 +335,8 @@ if __name__ == "__main__":
     size_valid_set = 0.1
     max_length = 512
     num_epochs = 5
-    batch_size = 4
-    gradient_accumulation_steps = 16
+    batch_size = 2
+    gradient_accumulation_steps = 8
 
     learning_rate = 3e-4
     lr_scheduler_type = 'cosine'
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
     mixed_precision_dtype = torch.float16
-    
+
     # prepare trainer
     trainer = Trainer(
         model=model,
