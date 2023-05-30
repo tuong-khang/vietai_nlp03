@@ -12,7 +12,7 @@ from torch.cuda.amp import GradScaler, autocast
 from lora_model import LoraModelForCasualLM
 from utils.common import download_from_driver
 from prepare_data import create_datasets
-from torch.distributed import destroy_process_group
+from torch.distributed import destroy_process_group, init_process_group, destroy_process_group
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
@@ -74,7 +74,7 @@ class Trainer:
         else:
             # TODO Otherwise, use 'torch.amp.autocast' context with the specified dtype, and initialize GradScaler if mixed_precision_dtype is float16.
             self.ctx = torch.amp.autocast(
-                device_type=f"cuda:{self.gpu_id}", dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
+                device_type='cuda', dtype=mixed_precision_dtype)  # YOUR CODE HERE ###
             self.gradscaler = GradScaler()  # YOUR CODE HERE ###
 
     def _set_ddp_training(self):
@@ -261,8 +261,8 @@ class Trainer:
             train_loss = self._run_epoch(train_dataloader, epoch)
 
             if _is_master_process():
-                #eval_loss = self._eval(
-                    #eval_dataloader=eval_dataloader, epoch=epoch)
+                eval_loss = self._eval(
+                    eval_dataloader=eval_dataloader, epoch=epoch)
 
                 print(
                     # f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
@@ -304,8 +304,7 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type.
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path).half()  # YOUR CODE HERE ###
+    model = AutoModelForCausalLM.from_pretrained(model_path).half()  # YOUR CODE HERE ###
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16,
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
@@ -360,7 +359,8 @@ if __name__ == "__main__":
         # After that, you should set the 'local_rank' from the environment variable 'LOCAL_RANK'.
 
         # Initialize the process group ### YOUR CODE HERE ###
-        local_rank = None  # YOUR CODE HERE ###
+        init_process_group(backend=backend)
+        local_rank = int(os.environ['LOCAL_RANK'])  # YOUR CODE HERE ###
     else:
         os.environ['RANK'] = '0'
         local_rank = 0
