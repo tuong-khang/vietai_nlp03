@@ -251,11 +251,12 @@ class Trainer:
             train_loss = self._run_epoch(train_dataloader, epoch)
 
             if _is_master_process():
-                eval_loss = self._eval(
-                    eval_dataloader=eval_dataloader, epoch=epoch)
+                #eval_loss = self._eval(
+                #    eval_dataloader=eval_dataloader, epoch=epoch)
 
                 print(
-                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
+                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
+                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
                 self._save_checkpoint(epoch=epoch)
 
 
