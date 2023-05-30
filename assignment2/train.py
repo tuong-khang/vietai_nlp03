@@ -105,7 +105,7 @@ class Trainer:
         if self.mixed_precision_dtype == torch.float16:
             ### YOUR CODE HERE ###
             self.gradscaler.scale(loss).backward()
-            # self.gradscaler.update()
+            #self.gradscaler.update()
             pass
         else:
             loss.backward()
@@ -150,7 +150,7 @@ class Trainer:
                     ### YOUR CODE HERE ###
                     # TODO: optimizer step
                     # TODO: update scaler factor
-                    self.gradscaler.step(self.optimizer)
+                    self.optimizer.step()
                     self.gradscaler.update()
                     pass
                 else:
@@ -186,13 +186,13 @@ class Trainer:
                                           sampler=DistributedSampler(
                                               train_dataset),
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            #padding='longest',
+                                                                            padding='longest',
                                                                             return_tensors='pt'))
         else:
             data_trainloader = DataLoader(dataset=train_dataset, batch_size=self.batch_size,
-                                          sampler=None,
+                                          sampler=RandomSampler(train_dataset),
                                           collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                            #padding='longest',
+                                                                            padding='longest',
                                                                             return_tensors='pt'))
 
         # TODO: Prepare the evaluation DataLoader. Initialize 'DataLoader' with 'eval_dataset',
@@ -202,7 +202,7 @@ class Trainer:
         data_testloader = DataLoader(dataset=eval_dataset, batch_size=self.batch_size,
                                      sampler=SequentialSampler(eval_dataset),
                                      collate_fn=DataCollatorForSeq2Seq(tokenizer=self.tokenizer,
-                                                                       #padding='longest',
+                                                                       padding='longest',
                                                                        return_tensors='pt'))  # YOUR CODE HERE ###
 
         return data_trainloader, data_testloader
