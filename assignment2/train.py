@@ -150,7 +150,7 @@ class Trainer:
                     ### YOUR CODE HERE ###
                     # TODO: optimizer step
                     # TODO: update scaler factor
-                    self.optimizer.step()
+                    self.gradscaler.step(self.optimizer)
                     self.gradscaler.update()
                     # pass
                 else:
