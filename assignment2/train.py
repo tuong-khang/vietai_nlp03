@@ -106,7 +106,7 @@ class Trainer:
             ### YOUR CODE HERE ###
             self.gradscaler.scale(loss).backward()
             # self.gradscaler.update()
-            # pass
+            pass
         else:
             loss.backward()
 
@@ -152,7 +152,7 @@ class Trainer:
                     # TODO: update scaler factor
                     self.gradscaler.step(self.optimizer)
                     self.gradscaler.update()
-                    # pass
+                    pass
                 else:
                     self.optimizer.step()
                 self.optimizer.zero_grad()
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     model = load_pretrained_model(local_rank, model_path=model_path)
     # Get tokenizer
     tokenizer = load_tokenizer_from_pretrained_model(model_path=model_path)
-    mixed_precision_dtype = torch.float16
+    mixed_precision_dtype = torch.bfloat16
     # prepare trainer
 
     trainer = Trainer(
