@@ -81,7 +81,8 @@ class Trainer:
         # TODO: Initialize the DistributedDataParallel wrapper for the model.
         # You would need to pass the model and specify the device IDs
         # and output device for the data parallelism.
-        self.model = None  # YOUR CODE HERE ###
+        self.model = DDP(self.model, device_ids=[
+                         self.gpu_id], output_device=self.gpu_id)# YOUR CODE HERE ###
 
     def _run_batch(self, batch):
         """
@@ -359,7 +360,8 @@ if __name__ == "__main__":
         # After that, you should set the 'local_rank' from the environment variable 'LOCAL_RANK'.
 
         # Initialize the process group ### YOUR CODE HERE ###
-        local_rank = None  # YOUR CODE HERE ###
+        init_process_group(backend=backend)
+        local_rank = int(os.environ['LOCAL_RANK']) # YOUR CODE HERE ###
     else:
         os.environ['RANK'] = '0'
         local_rank = 0
