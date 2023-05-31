@@ -260,8 +260,8 @@ class Trainer:
                     eval_dataloader=eval_dataloader, epoch=epoch)
 
                 print(
-                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
-                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
+                    f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss = {eval_loss}")
+                    #f"epoch = {epoch} | avg_train_loss = {train_loss} | eval_loss ")
                 self._save_checkpoint(epoch=epoch)
 
 
