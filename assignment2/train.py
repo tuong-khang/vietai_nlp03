@@ -298,11 +298,15 @@ def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type.
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
 
+    #model = AutoModelForCausalLM.from_pretrained(
+    #    model_path,
+    #    torch_dtype=torch.float16
+    #    )  # YOUR CODE HERE ###
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.float16
-        )  # YOUR CODE HERE ###
-
+        torch_dtype=torch.float16,
+        device_map = {"": torch.device(f"cuda:{local_rank}")}
+    )
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16,
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
     # We will then use the config to initialize a LoraModelForCasualLM with the loaded model.
@@ -348,7 +352,7 @@ if __name__ == "__main__":
     eval_freq = 150
 
     # TODO: Choose strategy
-    distributed_strategy = "no"  # YOUR CODE HERE ###
+    distributed_strategy = "ddp"  # YOUR CODE HERE ###
 
     if distributed_strategy == "ddp":
         # TODO: Initialize the process group for distributed data parallelism with nccl backend.
